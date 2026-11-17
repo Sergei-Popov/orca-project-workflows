@@ -6,3 +6,8 @@ All notable changes to this plugin are documented here. The format follows
 `[Unreleased]` into the released version.
 
 ## [Unreleased]
+
+### Added
+
+- OpenSpec change navigation, task progress and structural validation in a selected local workspace.
+- Explicit handoff of the selected change to Codex or Claude Code.
