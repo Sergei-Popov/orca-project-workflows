@@ -277,7 +277,7 @@ export async function inspectOpenSpec(root: string, id: string): Promise<Workflo
     const status = await statusArtifacts(local.folder, change, result.json)
     if (status) {
       return {
-        item,
+        item: applyInfo?.state === 'all_done' ? { ...item, status: 'complete' } : item,
         artifacts: status.artifacts,
         canLaunch: status.canLaunch && (applyInfo?.state === 'ready' || applyInfo?.state === 'all_done'),
         canValidate: true,
@@ -292,7 +292,8 @@ export async function inspectOpenSpec(root: string, id: string): Promise<Workflo
   })
   const notice: Notice = 'notice' in result ? result.notice : { kind: 'cli-error', detail: 'OpenSpec did not return the selected change status.' }
   const canLaunch = notice.kind === 'cli-missing' && files.includes('proposal.md') && files.includes('tasks.md') && (item.total ?? 0) > 0
-  return { item, artifacts, notice, canValidate: false, canLaunch }
+  const complete = canLaunch && item.completed === item.total
+  return { item: complete ? { ...item, status: 'complete' } : item, artifacts, notice, canValidate: false, canLaunch }
 }
 
 export async function validateOpenSpec(root: string, id: string): Promise<ValidationResult> {
@@ -317,12 +318,18 @@ export async function validateOpenSpec(root: string, id: string): Promise<Valida
 export async function openSpecPrompt(root: string, id: string, agent: AgentKind): Promise<string> {
   const detail = await inspectOpenSpec(root, id)
   if (!detail.canLaunch) throw new Error('The OpenSpec change is not ready for implementation.')
-  const workflow = agent === 'codex' ? '$openspec-apply-change' : 'openspec-apply-change skill (/opsx:apply if enabled)'
+  const complete = detail.item.status === 'complete'
+  const action = complete ? 'verify' : 'apply'
+  const skill = `openspec-${action}-change`
+  const workflow = agent === 'codex' ? `$${skill}` : `${skill} skill (/opsx:${action} if enabled)`
   const paths = detail.artifacts.flatMap(artifact => artifact.path ? [`- ${JSON.stringify(artifact.path)}`] : [])
   return [
-    `Implement the OpenSpec change ${JSON.stringify(id)} in this worktree.`,
+    `${complete ? 'Verify' : 'Implement'} the OpenSpec change ${JSON.stringify(id)} in this worktree.`,
     `Use the ${workflow} workflow if installed. Start by reading project instructions and these change artifacts:`,
     ...paths,
-    'Follow the project instructions and the agreed scope. Continue from the open implementation tasks, run relevant checks, and report the result. Leave commits, pushes, pull requests, and archival for a separate user request.',
+    complete
+      ? 'All tracked tasks are complete. Compare the implementation with the change artifacts, run relevant checks, and report any gaps.'
+      : 'Continue from the open implementation tasks within the agreed scope, run relevant checks, and report the result.',
+    'Leave commits, pushes, pull requests, and archival for a separate user request.',
   ].join('\n')
 }
