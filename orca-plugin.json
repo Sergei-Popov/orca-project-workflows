@@ -1,14 +1,47 @@
 {
   "$schema": "https://raw.githubusercontent.com/stablyai/orca/main/docs/schemas/plugins/orca-plugin.v2.schema.json",
   "manifestVersion": 2,
+  "execution": "trusted-worker",
   "id": "project-workflows",
   "name": "Project Workflows",
   "version": "0.1.0",
-  "description": "Open project specifications and hand selected changes to a coding agent in the chosen Orca worktree.",
+  "description": "Browse OpenSpec changes and BMAD stories, open their project files, validate changes and hand work to Codex or Claude Code in the selected local Orca workspace.",
+  "author": {
+    "name": "Sergei Popov",
+    "url": "https://github.com/Sergei-Popov"
+  },
+  "repository": "https://github.com/Sergei-Popov/orca-project-workflows",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "cover": {
+    "path": "images/cover.png",
+    "alt": "OpenSpec shows add-filtered-csv-export with 1 of 3 tasks complete in the Reports workspace."
+  },
+  "screenshots": [
+    {
+      "path": "images/shot-1-openspec-validation.png",
+      "alt": "OpenSpec validation passed for add-filtered-csv-export. Its proposal, specification, design and tasks are available to open."
+    },
+    {
+      "path": "images/shot-2-planning-blockers.png",
+      "alt": "For pending-design, the proposal is ready to create. Specifications, Design and Tasks are blocked."
+    },
+    {
+      "path": "images/shot-3-sprint-tracking.png",
+      "alt": "Three BMAD sprint stories show In review, Ready for development and Done. The selected story tracks report history."
+    },
+    {
+      "path": "images/shot-4-story-handoff.png",
+      "alt": "Continue “Keep the active report filters” with Claude Code. Its SPEC.md, stories.yaml and story file are linked."
+    },
+    {
+      "path": "images/shot-5-quick-build.png",
+      "alt": "A BMAD Build request asks Codex to keep the date filter when exporting reports to CSV. Shown in Orca's light theme."
+    }
+  ],
   "engines": {
     "orca": ">=1.4.248"
   },
-  "execution": "trusted-worker",
   "pluginApi": 1,
   "main": "src/worker.ts",
   "contributes": {
@@ -32,9 +65,5 @@
     {
       "kind": "agent:launch"
     }
-  ],
-  "author": {
-    "name": "Сергей Попов"
-  },
-  "license": "MIT"
+  ]
 }

@@ -55,6 +55,7 @@ const en = {
   artifacts: 'Artifacts',
   emptyArtifacts: 'No artifacts found',
   progress: 'Tasks completed',
+  noTasks: 'No tasks',
   check: 'Validate',
   run: 'Start with agent',
   continueStory: 'Continue story',
@@ -103,6 +104,7 @@ const ru: typeof en = {
   artifacts: 'Артефакты',
   emptyArtifacts: 'Артефакты не найдены',
   progress: 'Задач выполнено',
+  noTasks: 'Нет задач',
   check: 'Проверить',
   run: 'Запустить агента',
   continueStory: 'Продолжить историю',
@@ -503,7 +505,7 @@ const methods = [
 ] as const
 
 function itemProgress(item: WorkflowItem, provider: WorkflowProvider, t: Copy): string | undefined {
-  if (provider !== 'bmad') return taskProgress(item)
+  if (provider !== 'bmad') return item.total === 0 ? t.noTasks : taskProgress(item)
   const status = item.status
   if (status && Object.hasOwn(t.storyStates, status)) return t.storyStates[status as keyof Copy['storyStates']]
   return status

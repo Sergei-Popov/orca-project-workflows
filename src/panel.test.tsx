@@ -22,6 +22,7 @@ function entry(view: TestPanel, title: string) {
 
 test('requires a workspace choice when focus cannot identify one and targets its selected change', async () => {
   const calls: unknown[] = []
+  const pending: WorkflowItem = { id: 'pending-design', title: 'pending-design', completed: 0, total: 0 }
   const view = await mount(panel, {
     host: mockHost({
       capabilities,
@@ -29,7 +30,7 @@ test('requires a workspace choice when focus cannot identify one and targets its
         'workflows.workspaces': () => ({ workspaces: [working, another], suggestedId: null }),
         'workflows.list': ({ workspaceId }) => {
           calls.push({ workspaceId })
-          return { items: [notifications, search] }
+          return { items: [notifications, search, pending] }
         },
         'workflows.inspect': ({ workspaceId, itemId }) => {
           calls.push({ workspaceId, itemId })
@@ -57,6 +58,7 @@ test('requires a workspace choice when focus cannot identify one and targets its
     await view.select({ label: 'Workspace' }, working.id)
     assert.match(view.summary().join('\n'), /Notification settings/)
     assert.ok(view.find({ text: '2/5' }))
+    assert.ok(view.find({ text: 'No tasks' }))
 
     await view.press(entry(view, 'Proposal'))
     await view.press({ text: 'Validate' })

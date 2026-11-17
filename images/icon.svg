@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tile" x2=".94" y2="1">
+      <stop stop-color="#60995b"/>
+      <stop offset=".5" stop-color="#356b51"/>
+      <stop offset="1" stop-color="#173941"/>
+    </linearGradient>
+    <linearGradient id="paper" x2="0" y2="1">
+      <stop stop-color="#f3fff0"/>
+      <stop offset="1" stop-color="#d8f6cd"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="52" fill="url(#tile)"/>
+  <rect x="2" y="2" width="252" height="252" rx="50" fill="none" stroke="#d9fad1" stroke-opacity=".17" stroke-width="4"/>
+  <g fill="none" stroke="#b7e9ad" stroke-width="14" stroke-linecap="round">
+    <path d="M82 128h22q19 0 19-19V93q0-19 19-19h18"/>
+    <path d="M102 128q21 0 21 20v15q0 19 19 19h18"/>
+  </g>
+  <rect x="36" y="98" width="63" height="60" rx="17" fill="url(#paper)"/>
+  <rect x="54" y="117" width="27" height="22" rx="6" fill="#4d764b"/>
+  <rect x="150" y="51" width="68" height="46" rx="13" fill="url(#paper)"/>
+  <rect x="150" y="159" width="68" height="46" rx="13" fill="#92dd7d"/>
+</svg>

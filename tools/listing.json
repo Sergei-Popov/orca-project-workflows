@@ -1,0 +1,67 @@
+{
+  "accent": "#83DE70",
+  "title": ["Project", "Workflows"],
+  "icon": "images/icon.png",
+  "cover": {
+    "out": "images/cover.png",
+    "alt": "OpenSpec shows add-filtered-csv-export with 1 of 3 tasks complete in the Reports workspace.",
+    "tagline": "Hand specs and stories to Codex or Claude Code.",
+    "chips": ["OpenSpec", "BMAD Method", "Worktrees"],
+    "stage": {
+      "panel": "project-workflows", "scenario": "changes",
+      "width": 440, "height": 850, "scale": 2
+    }
+  },
+  "screenshots": [
+    {
+      "out": "images/shot-1-openspec-validation.png",
+      "headline": "Validate an OpenSpec change",
+      "alt": "OpenSpec validation passed for add-filtered-csv-export. Its proposal, specification, design and tasks are available to open.",
+      "stage": {
+        "panel": "project-workflows", "scenario": "changes",
+        "act": [{"press": {"text": "Validate"}}],
+        "waitFor": {"text": "OpenSpec validation passed"},
+        "width": 960, "height": 850, "scale": 1.5, "origin": {"y": 300}
+      }
+    },
+    {
+      "out": "images/shot-2-planning-blockers.png",
+      "headline": "See which artifacts are blocked",
+      "alt": "For pending-design, the proposal is ready to create. Specifications, Design and Tasks are blocked.",
+      "stage": {
+        "panel": "project-workflows", "scenario": "blocked-change",
+        "width": 640, "height": 740, "scale": 2.25, "origin": {"y": 296}
+      }
+    },
+    {
+      "out": "images/shot-3-sprint-tracking.png",
+      "headline": "Follow stories through a sprint",
+      "alt": "Three BMAD sprint stories show In review, Ready for development and Done. The selected story tracks report history.",
+      "stage": {
+        "panel": "project-workflows", "scenario": "bmad-sprint",
+        "width": 800, "height": 650, "scale": 1.8, "origin": {"y": 46}
+      }
+    },
+    {
+      "out": "images/shot-4-story-handoff.png",
+      "headline": "Continue a story with its spec",
+      "alt": "Continue “Keep the active report filters” with Claude Code. Its SPEC.md, stories.yaml and story file are linked.",
+      "stage": {
+        "panel": "project-workflows", "scenario": "bmad-story",
+        "act": [{"select": {"label": "Agent"}, "value": "claude"}],
+        "width": 758, "height": 700, "scale": 1.9, "origin": {"y": 177}
+      }
+    },
+    {
+      "out": "images/shot-5-quick-build.png",
+      "headline": "Describe a small change",
+      "alt": "A BMAD Build request asks Codex to keep the date filter when exporting reports to CSV. Shown in Orca's light theme.",
+      "stage": {
+        "panel": "project-workflows", "scenario": "bmad-quick-build", "theme": "light",
+        "act": [{"type": {"label": "Describe the change"}, "text": "Keep the current date filter when exporting reports to CSV.", "replace": true}],
+        "waitFor": {"text": "Start BMAD Build"},
+        "width": 824, "height": 650, "scale": 1.75, "origin": {"y": 46}
+      }
+    }
+  ]
+}
