@@ -131,3 +131,23 @@ test('reports an installed command failure while keeping local artifacts availab
     assert.ok(detail.artifacts.some(artifact => artifact.path === `${change}/proposal.md`))
   })
 })
+
+test('hands a completed change to verification and respects the CLI apply state when task evidence is partial', async () => {
+  await withWorktree(async (root, folder, bin) => {
+    await writeFile(join(folder, 'tasks.md'), '- [x] Cover filtered exports\n')
+    const fallback = await openSpecPrompt(root, id, 'claude')
+    assert.match(fallback, /Verify the OpenSpec change/)
+    assert.match(fallback, /\/opsx:verify/)
+    if (platform === 'win32') return
+
+    const status = JSON.stringify({ changeName: id, artifacts: [
+      { id: 'tasks', outputPath: 'tasks.md', status: 'done' }
+    ], applyRequires: ['tasks'] })
+    for (const state of ['ready', 'all_done']) {
+      const apply = JSON.stringify({ changeName: id, state, progress: { total: 1, complete: 1 } })
+      await installFixture(bin, `case "$1" in\nstatus) echo '${status}' ;;\ninstructions) echo '${apply}' ;;\nesac\n`)
+      const prompt = await openSpecPrompt(root, id, 'codex')
+      assert.ok(prompt.includes(state === 'all_done' ? '$openspec-verify-change' : '$openspec-apply-change'))
+    }
+  })
+})
