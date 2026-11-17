@@ -24,8 +24,10 @@ The adapter supports BMM from BMAD Method 6.12.4. It reads `stories.yaml` next t
 
 ```sh
 orca plugin types . --json
-npm ci
-npm run typecheck
+npx -y -p typescript@5.9.3 -p @types/node@22.20.5 -- sh -c '
+  types_dir=$(dirname "$(dirname "$(command -v tsc)")")/@types
+  tsc -p . --typeRoots "./.orca/types,$types_dir"
+'
 orca plugin test . --json
 orca plugin check . --json
 orca plugin validate . --json
