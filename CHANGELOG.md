@@ -6,6 +6,8 @@ All notable changes to this plugin are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-17
+
 ### Added
 
 - Browse local OpenSpec changes, follow task progress, open planning artifacts and run structural validation from Orca’s sidebar.
