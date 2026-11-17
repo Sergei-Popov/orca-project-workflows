@@ -42,6 +42,13 @@ const notificationDetail: WorkflowDetail = {
 }
 
 const capabilities = ['workspace:read']
+const story: WorkflowItem = {
+  id: '1-2-persist-filters',
+  title: 'Persist filters on page refresh',
+  completed: null,
+  total: null,
+  status: 'ready-for-dev'
+}
 
 export default defineCheck({
   changes: {
@@ -69,6 +76,34 @@ export default defineCheck({
     requests: {
       'workflows.workspaces': () => ({ workspaces: [working], suggestedId: working.id }),
       'workflows.list': () => ({ items: [], notice: { kind: 'cli-missing' } })
+    }
+  },
+  'bmad-story': {
+    capabilities,
+    persisted: { plugin: { method: 'bmad' } },
+    requests: {
+      'workflows.workspaces': () => ({ workspaces: [another], suggestedId: another.id }),
+      'workflows.list': () => ({ items: [story], buildAgents: ['codex', 'claude'] }),
+      'workflows.inspect': () => ({
+        item: story,
+        artifacts: [{
+          id: 'story',
+          title: 'Story',
+          path: '_bmad-output/implementation-artifacts/1-2-persist-filters.md',
+          state: 'done'
+        }],
+        canValidate: false,
+        canLaunch: true,
+        agents: ['codex', 'claude']
+      })
+    }
+  },
+  'bmad-quick-build': {
+    capabilities,
+    persisted: { plugin: { method: 'bmad' } },
+    requests: {
+      'workflows.workspaces': () => ({ workspaces: [another], suggestedId: another.id }),
+      'workflows.list': () => ({ items: [], buildAgents: ['codex'] })
     }
   }
 })

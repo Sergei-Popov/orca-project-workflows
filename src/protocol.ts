@@ -1,4 +1,5 @@
 export type AgentKind = 'codex' | 'claude'
+export type WorkflowProvider = 'openspec' | 'bmad'
 
 export interface Workspace {
   id: string
@@ -10,6 +11,7 @@ export interface Workspace {
 export interface WorkflowItem {
   id: string
   title: string
+  subtitle?: string
   completed: number | null
   total: number | null
   status?: string
@@ -22,7 +24,10 @@ export interface WorkflowArtifact {
   state: 'done' | 'ready' | 'blocked' | 'missing'
 }
 
-export type Notice = { kind: 'cli-missing' | 'cli-error' | 'unsupported'; detail?: string }
+export type Notice = {
+  kind: 'cli-missing' | 'cli-error' | 'unsupported' | 'bmad-missing' | 'bmad-unsupported' | 'bmad-config'
+  detail?: string
+}
 
 export interface WorkflowDetail {
   item: WorkflowItem
@@ -30,6 +35,7 @@ export interface WorkflowDetail {
   notice?: Notice
   canValidate: boolean
   canLaunch: boolean
+  agents?: AgentKind[]
 }
 
 export interface ValidationResult {
@@ -37,19 +43,22 @@ export interface ValidationResult {
   messages: string[]
 }
 
+type WorkflowLocation = { workspaceId: string; provider?: WorkflowProvider }
+type WorkflowSelection = WorkflowLocation & { itemId: string }
+
 declare module 'orca' {
   interface PluginRequests {
     'workflows.workspaces': { output: { workspaces: Workspace[]; suggestedId: string | null } }
     'workflows.list': {
-      input: { workspaceId: string }
-      output: { items: WorkflowItem[]; notice?: Notice }
+      input: WorkflowLocation
+      output: { items: WorkflowItem[]; notice?: Notice; buildAgents?: AgentKind[] }
     }
     'workflows.inspect': {
-      input: { workspaceId: string; itemId: string }
+      input: WorkflowSelection
       output: WorkflowDetail
     }
     'workflows.open': {
-      input: { workspaceId: string; itemId: string; artifactId: string }
+      input: WorkflowSelection & { artifactId: string }
       output: { opened: boolean }
     }
     'workflows.validate': {
@@ -57,7 +66,11 @@ declare module 'orca' {
       output: ValidationResult
     }
     'workflows.launch': {
-      input: { workspaceId: string; itemId: string; agent: AgentKind }
+      input: WorkflowSelection & { agent: AgentKind }
+      output: { terminalId: string }
+    }
+    'workflows.bmadBuild': {
+      input: { workspaceId: string; agent: AgentKind; intent: string }
       output: { terminalId: string }
     }
   }

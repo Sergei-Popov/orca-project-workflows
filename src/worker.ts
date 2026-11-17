@@ -1,7 +1,19 @@
 import { realpath, stat } from 'node:fs/promises'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import type { OrcaWorkerApi } from 'orca/worker'
+import { bmadPrompt, bmadQuickBuildPrompt, inspectBmad, listBmad } from './bmad'
 import { inspectOpenSpec, listOpenSpec, openSpecPrompt, validateOpenSpec } from './openspec'
+import type { WorkflowProvider } from './protocol'
+
+const providers = {
+  openspec: { list: listOpenSpec, inspect: inspectOpenSpec, prompt: openSpecPrompt },
+  bmad: { list: listBmad, inspect: inspectBmad, prompt: bmadPrompt }
+}
+
+function provider(name: WorkflowProvider = 'openspec') {
+  if (name !== 'openspec' && name !== 'bmad') throw new Error('Unsupported workflow provider.')
+  return providers[name]
+}
 
 type WorkspaceRow = Awaited<ReturnType<typeof listWorkspaces>>[number]
 
@@ -54,19 +66,19 @@ export default function activate(orca: OrcaWorkerApi): void {
     }
   })
 
-  orca.panels.handle('workflows.list', async ({ workspaceId }) => {
+  orca.panels.handle('workflows.list', async ({ workspaceId, provider: name }) => {
     const { root } = await locateWorkspace(orca, workspaceId)
-    return listOpenSpec(root)
+    return provider(name).list(root)
   })
 
-  orca.panels.handle('workflows.inspect', async ({ workspaceId, itemId }) => {
+  orca.panels.handle('workflows.inspect', async ({ workspaceId, itemId, provider: name }) => {
     const { root } = await locateWorkspace(orca, workspaceId)
-    return inspectOpenSpec(root, itemId)
+    return provider(name).inspect(root, itemId)
   })
 
-  orca.panels.handle('workflows.open', async ({ workspaceId, itemId, artifactId }) => {
+  orca.panels.handle('workflows.open', async ({ workspaceId, itemId, artifactId, provider: name }) => {
     const { root, workspace } = await locateWorkspace(orca, workspaceId)
-    const detail = await inspectOpenSpec(root, itemId)
+    const detail = await provider(name).inspect(root, itemId)
     const artifact = detail.artifacts.find(({ id }) => id === artifactId)
     const path = await artifactPath(root, artifact?.path)
     return orca.host.call('editor.open', { workspaceId: workspace.id, path })
@@ -77,10 +89,17 @@ export default function activate(orca: OrcaWorkerApi): void {
     return validateOpenSpec(root, itemId)
   })
 
-  orca.panels.handle('workflows.launch', async ({ workspaceId, itemId, agent }) => {
+  orca.panels.handle('workflows.launch', async ({ workspaceId, itemId, agent, provider: name }) => {
     if (agent !== 'codex' && agent !== 'claude') throw new Error('Unsupported agent.')
     const { root, workspace } = await locateWorkspace(orca, workspaceId)
-    const prompt = await openSpecPrompt(root, itemId, agent)
+    const prompt = await provider(name).prompt(root, itemId, agent)
+    return orca.host.call('agent.launch', { workspaceId: workspace.id, agent, prompt })
+  })
+
+  orca.panels.handle('workflows.bmadBuild', async ({ workspaceId, intent, agent }) => {
+    if (agent !== 'codex' && agent !== 'claude') throw new Error('Unsupported agent.')
+    const { root, workspace } = await locateWorkspace(orca, workspaceId)
+    const prompt = await bmadQuickBuildPrompt(root, intent, agent)
     return orca.host.call('agent.launch', { workspaceId: workspace.id, agent, prompt })
   })
 }

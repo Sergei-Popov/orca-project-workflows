@@ -122,3 +122,76 @@ test('keeps the newest change when an older detail request finishes later', asyn
     await view.unmount()
   }
 })
+
+test('continues the selected BMAD story and sends build intent to the current workspace', async () => {
+  const story: WorkflowItem = { id: 'story-1', title: 'Persist filters', completed: null, total: null, status: 'ready-for-dev' }
+  const calls: unknown[] = []
+  const view = await mount(panel, {
+    host: mockHost({
+      capabilities,
+      requests: {
+        'workflows.workspaces': () => ({ workspaces: [working, another], suggestedId: working.id }),
+        'workflows.list': (input) => {
+          calls.push(input)
+          return input.provider === 'bmad' ? { items: [story], buildAgents: ['codex'] } : { items: [] }
+        },
+        'workflows.inspect': (input) => {
+          calls.push(input)
+          return {
+            item: story,
+            artifacts: [{ id: 'story', title: 'Story', path: '_bmad-output/stories/story-1.md', state: 'done' }],
+            canValidate: false,
+            canLaunch: true,
+            agents: ['claude']
+          }
+        },
+        'workflows.open': (input) => {
+          calls.push(input)
+          return { opened: true }
+        },
+        'workflows.launch': (input) => {
+          calls.push(input)
+          return { terminalId: 'story-terminal' }
+        },
+        'workflows.bmadBuild': (input) => {
+          calls.push(input)
+          return { terminalId: 'build-terminal' }
+        }
+      }
+    })
+  })
+
+  try {
+    await view.select({ label: 'Method' }, 'bmad')
+    await view.select({ label: 'Workspace' }, another.id)
+    assert.ok(view.find({ text: 'Ready for development' }))
+    assert.equal(view.find({ text: 'Validate' }), null)
+    assert.equal(view.valueOf({ label: 'Agent' }), 'claude')
+    await view.press(entry(view, 'Story'))
+    await view.press({ text: 'Continue story' })
+
+    const quickBuild = view.findAll({ type: 'Collapsible' }).find((element) => element.props.title === 'Build a small change')
+    assert.ok(quickBuild)
+    await view.toggle(quickBuild)
+    assert.equal(view.valueOf({ label: 'Build agent' }), 'codex')
+    await view.type({ label: 'Describe the change' }, 'Add a clear-all action')
+    await view.press({ text: 'Start BMAD Build' })
+    assert.match(view.summary().join('\n'), /Agent started in this workspace/)
+    assert.equal(view.valueOf({ label: 'Describe the change' }), '')
+    assert.deepEqual(calls, [
+      { workspaceId: working.id },
+      { workspaceId: working.id, provider: 'bmad' },
+      { workspaceId: working.id, itemId: story.id, provider: 'bmad' },
+      { workspaceId: another.id, provider: 'bmad' },
+      { workspaceId: another.id, itemId: story.id, provider: 'bmad' },
+      { workspaceId: another.id, itemId: story.id, provider: 'bmad', artifactId: 'story' },
+      { workspaceId: another.id, itemId: story.id, provider: 'bmad', agent: 'claude' },
+      { workspaceId: another.id, agent: 'codex', intent: 'Add a clear-all action' }
+    ])
+    assert.deepEqual(view.refusals, [])
+    assert.deepEqual(view.warnings, [])
+    assert.deepEqual(view.errors, [])
+  } finally {
+    await view.unmount()
+  }
+})

@@ -39,8 +39,10 @@ async function installFixture(bin: string, body: string) {
 
 test('reads local artifacts and progress without executing a worktree binary', async () => {
   await withWorktree(async (root) => {
-    if (platform !== 'win32') await installFixture(root, 'printf "%s\\n" "unexpected worktree binary"\n')
-    env.PATH = root
+    const localBin = join(root, 'bin')
+    await mkdir(localBin)
+    if (platform !== 'win32') await installFixture(localBin, 'printf "%s\\n" "unexpected worktree binary"\n')
+    env.PATH = localBin
     const list = await listOpenSpec(root)
     assert.deepEqual(list.items, [{ id, title: id, completed: 1, total: 2 }])
     assert.equal(list.notice?.kind, 'cli-missing')
